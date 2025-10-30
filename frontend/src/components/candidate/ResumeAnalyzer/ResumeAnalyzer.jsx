@@ -181,6 +181,15 @@ export default function ResumeAnalyzer() {
               </div>
             )}
 
+            {/* ✅ ADD DIFF VIEWER WITH SAFETY CHECK */}
+            {originalResume && optimizedResume && (
+              <DiffViewer
+                originalText={originalResume}
+                optimizedText={optimizedResume}
+                addedSkills={selectedSkills}
+              />
+            )}
+
             {/* Action Buttons for Results */}
             <div style={styles.buttonContainer}>
               {missingSkills && missingSkills.length > 0 && (
@@ -387,17 +396,5 @@ const styles = {
     margin: '0',
     paddingLeft: '20px',
     color: '#4b5563'
-  },
-  instructions: {
-    margin: '0',
-    paddingLeft: '20px'
-  },
-  instructions: {
-    margin: '0',
-    paddingLeft: '20px'
-  },
-  instructions: {
-    margin: '0',
-    paddingLeft: '20px'
   }
 };
