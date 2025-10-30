@@ -1,33 +1,29 @@
 # ============================================
-# Resume Analyzer Service - TRULY Minimal Requirements
-# Based on ACTUAL usage analysis - only what's really used
+# Resume Analyzer Service - Minimal Compatible Requirements
 # Port: 8000
 # ============================================
 
 # Core Web Framework
-fastapi==0.120.2
-uvicorn[standard]==0.38.0
-python-multipart==0.0.20
+fastapi>=0.110.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.6
 
-# PDF Processing (Actually Used)
-PyPDF2==3.0.1
-pdfplumber==0.11.7
+# PDF Processing
+PyPDF2>=3.0.0
+pdfplumber>=0.10.0
 
-# NLP & ML (Actually Used - TF-IDF based, not torch)
-nltk==3.9.2
-spacy==3.8.7
-numpy==2.3.3
-scikit-learn==1.7.2
+# NLP & ML (TF-IDF based)
+nltk>=3.8.0
+spacy>=3.7.0
+numpy>=1.24.0
+scikit-learn>=1.3.0
 
-# PDF Generation (Actually Used)
-reportlab==4.4.4
+# PDF Generation
+reportlab>=4.0.0
 
-# Utilities (Actually Used)
-requests==2.32.5
-python-dotenv==1.2.1
+# Utilities
+requests>=2.31.0
+python-dotenv>=1.0.0
 
 # Spacy model (install separately after pip install)
 # python -m spacy download en_core_web_sm
-
-# NOTE: We do NOT use torch, transformers, or sentence-transformers
-# Our Resume Analyzer uses TF-IDF + ReportLab for CPU efficiency
