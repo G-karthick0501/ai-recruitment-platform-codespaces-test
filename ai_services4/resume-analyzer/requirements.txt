@@ -1,6 +1,6 @@
 # ============================================
-# Resume Analyzer Service - PROVEN Working Versions
-# Based on local working environment that is TESTED and CONFIRMED
+# Resume Analyzer Service - COMPATIBLE Working Versions
+# Based on local working environment but with compatible scikit-learn
 # Port: 8000
 # ============================================
 
@@ -15,11 +15,11 @@ pdfplumber==0.11.7
 pypdfium2==5.0.0
 pdfminer.six==20250506
 
-# NLP & ML (PROVEN Working - TF-IDF based)
+# NLP & ML (COMPATIBLE Versions)
 nltk==3.9.2
 spacy==3.8.7
-numpy==2.3.3
-scikit-learn==1.7.2
+numpy==1.26.4  # Stable version compatible with scikit-learn
+scikit-learn==1.5.2  # Stable version with pre-compiled wheels
 
 # PDF Generation (PROVEN Working)
 reportlab==4.4.4
@@ -34,4 +34,4 @@ pdf2image==1.17.0
 # Spacy model (install separately after pip install)
 # python -m spacy download en_core_web_sm
 
-# VERIFIED: This exact setup is working locally and tested end-to-end
+# COMPATIBILITY: Using numpy 1.26.4 + scikit-learn 1.5.2 for easy installation
