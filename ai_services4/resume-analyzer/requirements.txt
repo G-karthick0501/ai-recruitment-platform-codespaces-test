@@ -1,55 +1,33 @@
 # ============================================
-# Resume Analyzer Service - COMPLETE Working Versions
-# Based on local working virtual environment analysis
+# Resume Analyzer Service - TRULY Minimal Requirements
+# Based on ACTUAL usage analysis - only what's really used
 # Port: 8000
 # ============================================
 
-# Core Web Framework (Exact Working Versions)
+# Core Web Framework
 fastapi==0.120.2
 uvicorn[standard]==0.38.0
 python-multipart==0.0.20
-pydantic==2.12.3
-starlette==0.49.1
 
 # PDF Processing (Actually Used)
 PyPDF2==3.0.1
 pdfplumber==0.11.7
-pypdfium2==5.0.0
-pdfminer.six==20250506
 
-# NLP & ML (Exact Working Versions from Local Environment)
+# NLP & ML (Actually Used - TF-IDF based, not torch)
 nltk==3.9.2
 spacy==3.8.7
-sentence-transformers==5.1.2
 numpy==2.3.3
 scikit-learn==1.7.2
-transformers==4.57.1
-torch==2.9.0+cpu
-tokenizers==0.22.1
-safetensors==0.6.2
 
-# PDF Generation (Actually Used - Working Versions)
+# PDF Generation (Actually Used)
 reportlab==4.4.4
 
 # Utilities (Actually Used)
 requests==2.32.5
 python-dotenv==1.2.1
-typing_extensions==4.15.0
-
-# Additional required dependencies from local environment
-PyYAML==6.0.3
-cachetools==6.2.1
-filelock==3.19.1
-fsspec==2025.9.0
-huggingface-hub==0.36.0
-joblib==1.5.2
-packaging==25.0
-regex==2025.10.23
-rich==14.2.0
-setuptools==70.2.0
-tqdm==4.67.1
-typer==0.20.0
-urllib3==2.5.0
 
 # Spacy model (install separately after pip install)
 # python -m spacy download en_core_web_sm
+
+# NOTE: We do NOT use torch, transformers, or sentence-transformers
+# Our Resume Analyzer uses TF-IDF + ReportLab for CPU efficiency
