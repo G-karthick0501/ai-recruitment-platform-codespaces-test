@@ -125,47 +125,102 @@ async def analyze_skills(
         print(f"📄 Resume length: {len(resume_text_original)} chars")
         print(f"📄 JD length: {len(jd_text_original)} chars")
         
-        # Use cleaned text ONLY for similarity analysis
-        resume_text_clean = clean_text_for_similarity(resume_text_original)
-        jd_text_clean = clean_text_for_similarity(jd_text_original)
+        # Validate inputs
+        if not resume_text_original or len(resume_text_original.strip()) < 50:
+            return {
+                "success": False,
+                "error": "Resume PDF appears to be empty or is a scanned image. Please upload a text-based PDF.", 
+                "missing_skills": [],
+                "improvement_tips": []
+            }
         
-        print(f"🧹 Cleaned resume length: {len(resume_text_clean)} chars")
-        print(f"🧹 Cleaned JD length: {len(jd_text_clean)} chars")
+        if not jd_text_original or len(jd_text_original.strip()) < 20:
+            return {
+                "success": False,
+                "error": "Job Description PDF appears to be empty or is a scanned image. Please upload a text-based PDF.",
+                "missing_skills": [],
+                "improvement_tips": []
+            }
         
-        # TF-IDF similarity analysis (CPU optimized)
-        similarity_result = similarity_engine.analyze_similarity(resume_text_clean, jd_text_clean)
+        original_resume_text = resume_text_original
         
-        # Extract skills from both documents
+        # TF-IDF works directly with raw text - it has its own tokenizer
+        match_result = similarity_engine.compute_match_score(resume_text_original, jd_text_original)
+        
+        # Chunk-level analysis (also use non-lemmatized text)
+        chunk_analysis = compute_chunk_similarity(resume_text_original, jd_text_original)
+        
+        # TF-IDF handles similarity and keyword analysis (working correctly)
+        # Now extract TECHNICAL SKILLS separately using NLP approach
         resume_skills = extract_skills(resume_text_original)
         jd_skills = extract_skills(jd_text_original)
         
-        # Find missing skills
+        # Find missing technical skills (skills in JD but not in resume)
         missing_skills = [skill for skill in jd_skills if skill not in resume_skills]
         
+        # Limit to top 15 most relevant missing skills
+        missing_skills = missing_skills[:15]
+        
+        print(f"🎯 TF-IDF similarity: {match_result['match_score']}%")
+        print(f"🎯 TF-IDF keywords found: {len(match_result['matched_keywords'])}")
+        print(f"🎯 Resume technical skills found: {len(resume_skills)}")
+        print(f"🎯 JD technical skills found: {len(jd_skills)}")
+        print(f"🎯 Missing technical skills: {len(missing_skills)}")
+        if missing_skills:
+            print(f"🎯 Missing technical skills: {missing_skills[:10]}")
+        
         # Generate improvement tips
-        improvement_tips = generate_improvement_tips(missing_skills, similarity_result)
+        improvement_tips = []
+        if match_result['match_score'] < 70:
+            improvement_tips.append("Consider adding more relevant keywords from the job description")
+        if match_result['keyword_coverage'] < 60:
+            improvement_tips.append(f"Add these keywords: {', '.join(match_result['missing_keywords'][:5])}")
+        if chunk_analysis['coverage_percentage'] < 50:
+            improvement_tips.append("Expand your resume to cover more job requirements")
         
-        processing_time = (time.time() - start_time) * 1000
+        elapsed_time = time.time() - start_time
         
-        result = {
+        print(f"✅ Analysis complete in {elapsed_time*1000:.2f}ms:")
+        print(f"   Match score: {match_result['match_score']}%")
+        print(f"   Keyword coverage: {match_result['keyword_coverage']}%")
+        print(f"   Chunk coverage: {chunk_analysis['coverage_percentage']}%")
+        
+        return {
             "success": True,
-            "similarity_score": similarity_result["similarity_score"],
-            "missing_skills": missing_skills[:10],  # Limit to 10 most important
-            "improvement_tips": improvement_tips,
-            "processing_time_ms": round(processing_time, 2),
+            "missing_skills": missing_skills,
+            "improvement_tips": improvement_tips if improvement_tips else ["Your resume looks good!"],
+            "original_resume_text": resume_text_original,
+            
+            # New comprehensive metrics
+            "match_score": match_result['match_score'],
+            "similarity": match_result['similarity'],
+            "keyword_coverage": match_result['keyword_coverage'],
+            "matched_keywords": match_result['matched_keywords'],
+            "missing_keywords": match_result['missing_keywords'],
+            
+            # Chunk analysis
+            "total_jd_chunks": chunk_analysis['total_jd_chunks'],
+            "matched_chunks_count": chunk_analysis['matched_chunks_count'],
+            "missing_chunks_count": chunk_analysis['missing_chunks_count'],
+            "coverage_percentage": chunk_analysis['coverage_percentage'],
+            "before_missing_chunks": [c['content'] for c in chunk_analysis['missing_chunks']],
+            
+            # Performance metrics
+            "processing_time_ms": round(elapsed_time * 1000, 2),
             "algorithm": "TF-IDF + Cosine Similarity",
-            "resume_skills_count": len(resume_skills),
-            "jd_skills_count": len(jd_skills),
-            "matched_skills_count": len(jd_skills) - len(missing_skills),
-            "message": "Analysis completed successfully (CPU-optimized)"
+            "message": "Analysis complete"
         }
         
-        print(f"✅ Analysis completed in {processing_time:.2f}ms")
-        return result
-        
     except Exception as e:
-        print(f"❌ Error in analysis: {e}")
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+        print(f"❌ Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "success": False,
+            "error": str(e),
+            "missing_skills": [],
+            "improvement_tips": []
+        }
 
 
 def extract_text_with_ocr_support(file_bytes) -> str:
@@ -297,33 +352,6 @@ def extract_skills(text: str) -> List[str]:
     
     print(f"🎯 Extracted {len(filtered_skills)} skills")
     return filtered_skills[:25]
-
-
-def generate_improvement_tips(missing_skills: List[str], similarity_result: dict) -> List[str]:
-    """Generate actionable improvement tips"""
-    tips = []
-    
-    # High priority tips based on missing skills
-    if missing_skills:
-        tips.append(f"Add these key missing skills: {', '.join(missing_skills[:5])}")
-    
-    # Similarity-based tips
-    similarity_score = similarity_result.get("similarity_score", 0)
-    if similarity_score < 30:
-        tips.append("Your resume has low similarity with the job description. Consider adding more relevant keywords and experience.")
-    elif similarity_score < 60:
-        tips.append("Good match! Add more specific achievements and quantifiable results to improve your chances.")
-    else:
-        tips.append("Strong match! Highlight your most relevant achievements at the top of your resume.")
-    
-    # General tips
-    tips.extend([
-        "Use action verbs to describe your accomplishments",
-        "Quantify your achievements with numbers and percentages",
-        "Tailor your resume for each specific job application"
-    ])
-    
-    return tips[:5]  # Return top 5 tips
 
 
 if __name__ == "__main__":
