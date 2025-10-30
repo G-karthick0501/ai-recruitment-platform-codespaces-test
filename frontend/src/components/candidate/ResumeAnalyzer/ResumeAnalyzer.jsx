@@ -68,6 +68,15 @@ export default function ResumeAnalyzer() {
     }
   };
 
+  // ✅ ADD FILE HANDLER
+  const handleFilesSelected = (type, file) => {
+    if (type === 'resume') {
+      setResumeFile(file);
+    } else if (type === 'jd') {
+      setJdFile(file);
+    }
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.card}>
@@ -76,32 +85,14 @@ export default function ResumeAnalyzer() {
           Upload your resume and a job description to get AI-powered optimization suggestions
         </p>
 
-        {/* File Upload Section */}
+        {/* File Upload Section - ✅ FIXED */}
         <div style={styles.section}>
-          <h3 style={styles.sectionTitle}>Upload Files</h3>
-          <div style={styles.uploadGrid}>
-            <FileUpload
-              id="resume-upload"
-              label="Resume (PDF)"
-              icon="📄"
-              accept=".pdf"
-              file={resumeFile}
-              onFileSelect={setResumeFile}
-              description="Click to upload your resume"
-            />
-            <FileUpload
-              id="jd-upload"
-              label="Job Description (PDF)"
-              icon="💼"
-              accept=".pdf"
-              file={jdFile}
-              onFileSelect={setJdFile}
-              description="Click to upload job description"
-            />
-          </div>
-          <p style={styles.requirements}>
-            <strong>Requirements:</strong> PDF files only, maximum 10MB each
-          </p>
+          <FileUpload
+            onFilesSelected={handleFilesSelected}
+            resumeFile={resumeFile}
+            jdFile={jdFile}
+            disabled={loading}
+          />
         </div>
 
         {/* Action Buttons */}
@@ -295,17 +286,6 @@ const styles = {
     fontWeight: '600',
     color: '#374151',
     marginBottom: '15px'
-  },
-  uploadGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '20px',
-    marginBottom: '15px'
-  },
-  requirements: {
-    fontSize: '14px',
-    color: '#6b7280',
-    margin: '0'
   },
   buttonContainer: {
     display: 'flex',
