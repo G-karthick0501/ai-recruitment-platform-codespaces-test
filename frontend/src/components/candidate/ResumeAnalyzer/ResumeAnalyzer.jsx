@@ -57,14 +57,14 @@ export default function ResumeAnalyzer() {
 
   const handleTestConnection = async () => {
     try {
-      const response = await fetch('http://localhost:8000/');
+      const response = await fetch(import.meta.env.VITE_RESUME_ANALYZER_URL + '/');
       if (response.ok) {
         alert('✅ Connection successful! AI service is running.');
       } else {
         alert('⚠️ AI service responded but with an error.');
       }
     } catch (err) {
-      alert('❌ Cannot connect to AI service. Make sure it\'s running on port 8000.');
+      alert('❌ Cannot connect to AI service. Make sure the Resume Analyzer service is running.');
     }
   };
 
@@ -72,350 +72,332 @@ export default function ResumeAnalyzer() {
     <div style={styles.container}>
       <div style={styles.card}>
         <h2 style={styles.title}>AI Resume Analyzer & Optimizer</h2>
-        <p style={styles.description}>
+        <p style={styles.subtitle}>
           Upload your resume and a job description to get AI-powered optimization suggestions
         </p>
 
-        {/* STEP 1: FILE UPLOAD */}
-        {currentStep === 'upload' && (
-          <>
+        {/* File Upload Section */}
+        <div style={styles.section}>
+          <h3 style={styles.sectionTitle}>Upload Files</h3>
+          <div style={styles.uploadGrid}>
             <FileUpload
-              resumeFile={resumeFile}
-              jdFile={jdFile}
-              onFilesSelected={(type, file) => {
-                if (type === 'resume') setResumeFile(file);
-                else if (type === 'jd') setJdFile(file);
-              }}
+              id="resume-upload"
+              label="Resume (PDF)"
+              icon="📄"
+              accept=".pdf"
+              file={resumeFile}
+              onFileSelect={setResumeFile}
+              description="Click to upload your resume"
             />
+            <FileUpload
+              id="jd-upload"
+              label="Job Description (PDF)"
+              icon="💼"
+              accept=".pdf"
+              file={jdFile}
+              onFileSelect={setJdFile}
+              description="Click to upload job description"
+            />
+          </div>
+          <p style={styles.requirements}>
+            <strong>Requirements:</strong> PDF files only, maximum 10MB each
+          </p>
+        </div>
 
-            {uploadStatus && (
-              <div style={styles.statusBox}>
-                <p style={styles.statusText}>{uploadStatus}</p>
+        {/* Action Buttons */}
+        <div style={styles.section}>
+          <div style={styles.buttonContainer}>
+            <button
+              onClick={handleTestConnection}
+              style={{
+                ...styles.button,
+                ...styles.secondaryButton,
+                cursor: 'pointer'
+              }}
+            >
+              🔌 Test Connection
+            </button>
+
+            <button
+              onClick={handleAnalyze}
+              disabled={!resumeFile || !jdFile || loading}
+              style={{
+                ...styles.button,
+                ...styles.primaryButton,
+                opacity: (!resumeFile || !jdFile || loading) ? 0.6 : 1,
+                cursor: (!resumeFile || !jdFile || loading) ? 'not-allowed' : 'pointer'
+              }}
+            >
+              🔍 Analyze Resume
+            </button>
+          </div>
+        </div>
+
+        {/* Loading State */}
+        {loading && (
+          <div style={styles.loadingContainer}>
+            <div style={styles.spinner}></div>
+            <p style={styles.loadingText}>
+              {uploadStatus || 'Analyzing your resume...'}
+            </p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div style={styles.errorContainer}>
+            <p style={styles.errorText}>{error}</p>
+          </div>
+        )}
+
+        {/* Results Section */}
+        {currentStep && !loading && (
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>Analysis Results</h3>
+            
+            {/* Missing Skills */}
+            {missingSkills && missingSkills.length > 0 && (
+              <div style={styles.resultItem}>
+                <h4 style={styles.resultTitle}>Missing Skills Found ({missingSkills.length})</h4>
+                <div style={styles.skillsList}>
+                  {missingSkills.map((skill, index) => (
+                    <div key={index} style={styles.skillItem}>
+                      {skill}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
-            {error && (
-              <div style={styles.errorBox}>
-                <p style={styles.errorText}>❌ {error}</p>
-              </div>
-            )}
-
-            <div style={styles.buttonContainer}>
-              <button
-                onClick={handleTestConnection}
-                style={{
-                  ...styles.button,
-                  ...styles.secondaryButton,
-                  cursor: 'pointer'
-                }}
-              >
-                🔌 Test Connection
-              </button>
-
-              <button
-                onClick={handleAnalyze}
-                disabled={!resumeFile || !jdFile || loading}
-                style={{
-                  ...styles.button,
-                  ...styles.primaryButton,
-                  opacity: (!resumeFile || !jdFile || loading) ? 0.5 : 1,
-                  cursor: (!resumeFile || !jdFile || loading) ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {loading ? (
-                  <>
-                    <span style={styles.spinner}>⏳</span> Analyzing...
-                  </>
-                ) : (
-                  <>🔍 Analyze Resume</>
-                )}
-              </button>
-            </div>
-
-            <div style={styles.instructions}>
-              <h3 style={styles.instructionsTitle}>How it works:</h3>
-              <ol style={styles.instructionsList}>
-                <li>Upload your current resume (PDF)</li>
-                <li>Upload the job description you're targeting (PDF)</li>
-                <li>
-                  <strong>Test Connection</strong> (optional) - Verify backend connectivity
-                </li>
-                <li>
-                  <strong>Analyze Resume</strong> - AI identifies missing skills
-                </li>
-                <li>Select which skills you want to add</li>
-                <li>Get your optimized resume instantly!</li>
-              </ol>
-            </div>
-          </>
-        )}
-
-        {/* STEP 2: SKILL SELECTION */}
-        {currentStep === 'skillSelection' && (
-          <SkillSelectionModal
-            missingSkills={missingSkills}
-            selectedSkills={selectedSkills}
-            onToggleSkill={toggleSkill}
-            onSelectAll={selectAllSkills}
-            onDeselectAll={deselectAllSkills}
-            onContinue={handleContinueWithSkills}
-            onCancel={handleCancelSkillSelection}
-            loading={loading}
-          />
-        )}
-
-        {/* STEP 3: RESULTS */}
-        {currentStep === 'results' && (
-          <div style={styles.resultsContainer}>
-            <div style={styles.resultsHeader}>
-              <h2 style={styles.resultsTitle}>✅ Resume Optimized!</h2>
-              <p style={styles.resultsSubtitle}>
-                Successfully added {selectedSkillsCount} skill
-                {selectedSkillsCount !== 1 ? 's' : ''} to your resume
-              </p>
-            </div>
-
-            {/* ✅ ADD DIFF VIEWER */}
-            {originalResume && optimizedResume && (
-              <DiffViewer
-                originalText={originalResume}
-                optimizedText={optimizedResume}
-                addedSkills={selectedSkills}
-              />
-            )}
-
-            {improvementTips.length > 0 && (
-              <div style={styles.tipsSection}>
-                <h3 style={styles.sectionTitle}>💡 Improvement Tips</h3>
+            {/* Improvement Tips */}
+            {improvementTips && improvementTips.length > 0 && (
+              <div style={styles.resultItem}>
+                <h4 style={styles.resultTitle}>Improvement Suggestions</h4>
                 <ul style={styles.tipsList}>
-                  {improvementTips.map((tip, idx) => (
-                    <li key={idx} style={styles.tipItem}>{tip}</li>
+                  {improvementTips.map((tip, index) => (
+                    <li key={index} style={styles.tipItem}>{tip}</li>
                   ))}
                 </ul>
               </div>
             )}
 
-            <div style={styles.resumeSection}>
-              <h3 style={styles.sectionTitle}>📄 Optimized Resume</h3>
-              <div style={styles.resumePreview}>
-                <pre style={styles.resumeText}>{optimizedResume}</pre>
-              </div>
-            </div>
-
-            <div style={styles.resultsActions}>
-              <button
-                onClick={handleDownload}
-                style={{
-                  ...styles.button,
-                  ...styles.primaryButton
-                }}
-              >
-                📥 Download Optimized Resume
-              </button>
-
-              <button
-                onClick={async () => {
-                  const success = await generatePDF();
-                  if (success) {
-                    alert('✅ PDF downloaded successfully!');
-                  }
-                }}
-                disabled={loading}
-                style={{
-                  ...styles.button,
-                  ...styles.secondaryButton,
-                  opacity: loading ? 0.5 : 1,
-                  cursor: loading ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {loading ? '⏳ Generating PDF...' : '📄 Download as PDF'}
-              </button>
-
-              <button
-                onClick={() => window.location.reload()}
-                style={{
-                  ...styles.button,
-                  backgroundColor: '#6c757d',
-                  color: 'white'
-                }}
-              >
-                🔄 Start Over
-              </button>
+            {/* Action Buttons for Results */}
+            <div style={styles.buttonContainer}>
+              {missingSkills && missingSkills.length > 0 && (
+                <button
+                  onClick={handleContinueWithSkills}
+                  disabled={loading}
+                  style={{
+                    ...styles.button,
+                    ...styles.primaryButton,
+                    opacity: loading ? 0.6 : 1,
+                    cursor: loading ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  Continue with Selected Skills ({selectedSkillsCount})
+                </button>
+              )}
+              
+              {optimizedResume && (
+                <button
+                  onClick={handleDownload}
+                  style={{
+                    ...styles.button,
+                    ...styles.secondaryButton,
+                    cursor: 'pointer'
+                  }}
+                >
+                  📄 Download Optimized Resume
+                </button>
+              )}
             </div>
           </div>
         )}
+
+        {/* Instructions */}
+        <div style={styles.section}>
+          <h3 style={styles.sectionTitle}>How it works:</h3>
+          <ol style={styles.instructions}>
+            <li>Upload your current resume (PDF)</li>
+            <li>Upload the job description you're targeting (PDF)</li>
+            <li><strong>Test Connection</strong> (optional) - Verify backend connectivity</li>
+            <li><strong>Analyze Resume</strong> - AI identifies missing skills</li>
+            <li>Select which skills you want to add</li>
+            <li>Get your optimized resume instantly!</li>
+          </ol>
+        </div>
       </div>
+
+      {/* Skill Selection Modal */}
+      <SkillSelectionModal
+        isOpen={currentStep === 'skillSelection'}
+        missingSkills={missingSkills}
+        selectedSkills={selectedSkills}
+        onToggleSkill={toggleSkill}
+        onSelectAll={selectAllSkills}
+        onDeselectAll={deselectAllSkills}
+        onContinue={handleContinueWithSkills}
+        onCancel={handleCancelSkillSelection}
+      />
+
+      {/* Diff Viewer Modal */}
+      <DiffViewer
+        isOpen={currentStep === 'diffView'}
+        originalText={originalResume}
+        optimizedText={optimizedResume}
+        onDownload={handleDownload}
+      />
     </div>
   );
 }
 
 const styles = {
   container: {
-    padding: 20,
-    maxWidth: 1200, // Wider for diff viewer
-    margin: '0 auto'
+    padding: '20px',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    fontFamily: 'Arial, sans-serif'
   },
   card: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 40,
-    boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+    backgroundColor: '#ffffff',
+    borderRadius: '12px',
+    padding: '30px',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    border: '1px solid #e5e7eb'
   },
   title: {
-    fontSize: 28,
-    fontWeight: 700,
+    fontSize: '28px',
+    fontWeight: 'bold',
+    color: '#1f2937',
     textAlign: 'center',
-    color: '#333',
-    margin: '0 0 10px'
+    marginBottom: '10px'
   },
-  description: {
-    fontSize: 18,
-    color: '#666',
-    margin: '0 0 30px',
-    textAlign: 'center'
+  subtitle: {
+    fontSize: '16px',
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: '30px'
   },
-  statusBox: {
-    padding: 20,
-    backgroundColor: '#e7f3ff',
-    borderRadius: 8,
-    marginTop: 20,
-    border: '1px solid #2196F3'
+  section: {
+    marginBottom: '30px'
   },
-  statusText: {
-    margin: 0,
-    fontSize: 16,
-    color: '#1565c0'
+  sectionTitle: {
+    fontSize: '20px',
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: '15px'
   },
-  errorBox: {
-    padding: 20,
-    backgroundColor: '#ffe7e7',
-    borderRadius: 8,
-    marginTop: 20,
-    border: '1px solid #f44336'
+  uploadGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '20px',
+    marginBottom: '15px'
   },
-  errorText: {
-    margin: 0,
-    fontSize: 16,
-    color: '#c62828'
+  requirements: {
+    fontSize: '14px',
+    color: '#6b7280',
+    margin: '0'
   },
   buttonContainer: {
     display: 'flex',
-    justifyContent: 'center',
-    gap: 15,
-    flexWrap: 'wrap',
-    marginTop: 30
+    gap: '15px',
+    justifyContent: 'center'
   },
   button: {
-    padding: '14px 32px',
-    borderRadius: 8,
-    fontSize: 18,
-    fontWeight: 600,
+    padding: '12px 24px',
     border: 'none',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10
+    borderRadius: '8px',
+    fontSize: '16px',
+    fontWeight: '500',
+    transition: 'all 0.2s ease'
   },
   primaryButton: {
-    backgroundColor: '#28a745',
+    backgroundColor: '#3b82f6',
     color: 'white'
   },
   secondaryButton: {
-    backgroundColor: 'white',
-    color: '#28a745',
-    border: '2px solid #28a745'
+    backgroundColor: '#f3f4f6',
+    color: '#374151',
+    border: '1px solid #d1d5db'
+  },
+  loadingContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '40px'
   },
   spinner: {
-    display: 'inline-block',
-    animation: 'spin 1s linear infinite'
+    width: '40px',
+    height: '40px',
+    border: '4px solid #f3f4f6',
+    borderTop: '4px solid #3b82f6',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite',
+    marginBottom: '15px'
   },
-  instructions: {
-    marginTop: 50,
-    padding: 30,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8
+  loadingText: {
+    fontSize: '16px',
+    color: '#6b7280',
+    margin: '0'
   },
-  instructionsTitle: {
-    fontSize: 20,
-    fontWeight: 600,
-    marginBottom: 15,
-    color: '#333'
+  errorContainer: {
+    backgroundColor: '#fef2f2',
+    border: '1px solid #fecaca',
+    borderRadius: '8px',
+    padding: '15px',
+    marginBottom: '20px'
   },
-  instructionsList: {
-    fontSize: 16,
-    lineHeight: 1.8,
-    color: '#555',
-    paddingLeft: 20
+  errorText: {
+    color: '#dc2626',
+    margin: '0',
+    fontSize: '14px'
   },
-  resultsContainer: {
-    marginTop: 20
+  resultItem: {
+    marginBottom: '25px'
   },
-  resultsHeader: {
-    textAlign: 'center',
-    marginBottom: 40,
-    padding: 30,
-    backgroundColor: '#d4edda',
-    borderRadius: 8
+  resultTitle: {
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: '10px'
   },
-  resultsTitle: {
-    fontSize: 32,
-    fontWeight: 700,
-    color: '#155724',
-    margin: '0 0 10px'
+  skillsList: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+    gap: '8px'
   },
-  resultsSubtitle: {
-    fontSize: 18,
-    color: '#155724',
-    margin: 0
-  },
-  tipsSection: {
-    marginBottom: 30,
-    padding: 25,
-    backgroundColor: '#fff3cd',
-    borderRadius: 8,
-    border: '1px solid #ffc107'
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: 600,
-    marginBottom: 15,
-    color: '#333'
+  skillItem: {
+    backgroundColor: '#fef3c7',
+    border: '1px solid #fcd34d',
+    borderRadius: '6px',
+    padding: '8px 12px',
+    fontSize: '14px',
+    color: '#92400e'
   },
   tipsList: {
-    margin: 0,
-    paddingLeft: 20,
-    fontSize: 16,
-    lineHeight: 1.8,
-    color: '#555'
+    margin: '0',
+    paddingLeft: '20px'
   },
   tipItem: {
-    marginBottom: 8
+    marginBottom: '8px',
+    color: '#4b5563',
+    lineHeight: '1.5'
   },
-  resumeSection: {
-    marginBottom: 30
+  instructions: {
+    margin: '0',
+    paddingLeft: '20px',
+    color: '#4b5563'
   },
-  resumePreview: {
-    backgroundColor: '#f8f9fa',
-    border: '1px solid #dee2e6',
-    borderRadius: 8,
-    padding: 20,
-    maxHeight: 500,
-    overflowY: 'auto'
+  instructions: {
+    margin: '0',
+    paddingLeft: '20px'
   },
-  resumeText: {
-    margin: 0,
-    fontSize: 14,
-    lineHeight: 1.6,
-    color: '#333',
-    fontFamily: 'monospace',
-    whiteSpace: 'pre-wrap',
-    wordWrap: 'break-word'
+  instructions: {
+    margin: '0',
+    paddingLeft: '20px'
   },
-  resultsActions: {
-    display: 'flex',
-    justifyContent: 'center',
-    gap: 15,
-    flexWrap: 'wrap'
+  instructions: {
+    margin: '0',
+    paddingLeft: '20px'
   }
 };
