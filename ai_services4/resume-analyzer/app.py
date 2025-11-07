@@ -15,6 +15,10 @@ import uuid
 import json
 import spacy
 from typing import List
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request, Response
 from fastapi.responses import JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
