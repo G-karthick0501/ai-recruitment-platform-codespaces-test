@@ -8,8 +8,8 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
-// Load TensorFlow.js node backend first to register it
-require('@tensorflow/tfjs-node');
+// Load TensorFlow.js CPU backend (works on Alpine without native bindings)
+require('@tensorflow/tfjs');
 const { Human } = require('@vladmandic/human');
 
 const app = express();
@@ -17,11 +17,16 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // Dynamic CORS configuration - same as Resume Analyzer
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
-// Split by comma for multiple URLs, then add localhost aliases
-const allowedOrigins = FRONTEND_URL.split(',').map(url => url.trim()).concat([
-    'http://127.0.0.1:5173',
-    'http://localhost:5173'
-]);
+// Split by comma for multiple URLs, then add localhost aliases ONLY if using localhost
+let allowedOrigins = FRONTEND_URL.split(',').map(url => url.trim());
+
+// Add localhost aliases only if the frontend URL is localhost-based
+if (FRONTEND_URL.includes('localhost:5173') || FRONTEND_URL.includes('127.0.0.1:5173')) {
+    allowedOrigins = allowedOrigins.concat([
+        'http://127.0.0.1:5173',
+        'http://localhost:5173'
+    ]);
+}
 
 console.log(`🌐 CORS allowed origins: ${allowedOrigins}`);
 
@@ -33,10 +38,10 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Detect available TensorFlow backend (tensorflow for glibc, cpu for musl)
-const tf = require('@tensorflow/tfjs-node');
+// Use TensorFlow.js CPU backend (works on Alpine without native dependencies)
+const tf = require('@tensorflow/tfjs');
 const availableBackends = Object.keys(tf.engine().registryFactory);
-const tfBackend = availableBackends.includes('tensorflow') ? 'tensorflow' : 'cpu';
+const tfBackend = 'cpu'; // Always use CPU backend for Alpine compatibility
 console.log(`🔧 Available backends: ${availableBackends.join(', ')}`);
 console.log(`✅ Using backend: ${tfBackend}`);
 
