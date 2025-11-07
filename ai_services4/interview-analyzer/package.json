@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@tensorflow/tfjs": "^4.22.0",
     "@tensorflow/tfjs-node": "^4.22.0",
     "@vladmandic/human": "^3.3.6",
     "canvas": "^3.2.0",

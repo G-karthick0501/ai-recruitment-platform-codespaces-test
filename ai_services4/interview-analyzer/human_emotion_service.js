@@ -8,9 +8,20 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
-// Load TensorFlow.js CPU backend (works on Alpine without native bindings)
-require('@tensorflow/tfjs');
 const { Human } = require('@vladmandic/human');
+const { Canvas, Image } = require('canvas');
+
+// Auto-detect TensorFlow backend availability
+let tf;
+let useTensorFlowNode = false;
+try {
+    tf = require('@tensorflow/tfjs-node');
+    useTensorFlowNode = true;
+    console.log('✅ Using TensorFlow.js Node (native backend)');
+} catch (e) {
+    tf = require('@tensorflow/tfjs');
+    console.log('✅ Using TensorFlow.js CPU backend');
+}
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -38,16 +49,9 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Use TensorFlow.js CPU backend (works on Alpine without native dependencies)
-const tf = require('@tensorflow/tfjs');
-const availableBackends = Object.keys(tf.engine().registryFactory);
-const tfBackend = 'cpu'; // Always use CPU backend for Alpine compatibility
-console.log(`🔧 Available backends: ${availableBackends.join(', ')}`);
-console.log(`✅ Using backend: ${tfBackend}`);
-
 // Initialize Human with optimized config for emotion detection
 const config = {
-    backend: tfBackend, // Auto-detect: tensorflow (glibc) or cpu (musl)
+    backend: useTensorFlowNode ? 'tensorflow' : 'cpu', // Auto-detect: native or CPU
     modelBasePath: 'https://cdn.jsdelivr.net/npm/@vladmandic/human/models',
     face: {
         enabled: true,
@@ -126,8 +130,22 @@ app.post('/analyze-emotion', upload.single('file'), async (req, res) => {
     }
     
     try {
-        // Convert buffer to tensor
-        const tensor = human.tf.node.decodeImage(req.file.buffer, 3);
+        // Decode image based on available backend
+        let tensor;
+        if (useTensorFlowNode) {
+            // Native TensorFlow.js Node backend (local/glibc systems)
+            tensor = tf.node.decodeImage(req.file.buffer, 3);
+        } else {
+            // CPU backend (Alpine/musl systems) - use canvas
+            const img = new Image();
+            img.src = req.file.buffer;
+            
+            const canvas = new Canvas(img.width, img.height);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            
+            tensor = human.tf.browser.fromPixels(canvas);
+        }
         const [height, width] = tensor.shape;
         
         console.log(`📏 Image: ${width}x${height}, Size: ${req.file.size} bytes`);
