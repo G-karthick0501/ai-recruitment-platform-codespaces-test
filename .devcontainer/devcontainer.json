@@ -7,7 +7,7 @@
     "memory": "8gb",
     "storage": "32gb"
   },
-  "postCreateCommand": "sudo apk add --no-cache nodejs npm python3 py3-pip py3-numpy py3-pandas py3-scipy py3-nltk && echo 'Alpine environment ready with Node.js, Python, and common packages'",
+  "postCreateCommand": "sudo apk add --no-cache nodejs npm python3 py3-pip py3-numpy py3-pandas py3-scipy py3-nltk py3-pillow py3-yaml py3-requests py3-certifi build-base && echo 'Alpine environment ready with Node.js, Python, and common packages'",
   "portsAttributes": {
     "8000": {
       "label": "Resume Analyzer",
