@@ -1,6 +1,6 @@
 {
   "name": "AI Recruitment Platform",
-  "image": "mcr.microsoft.com/devcontainers/base:alpine-3.20",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
   "workspaceFolder": "/workspaces/ai-recruitment-platform-codespaces-test",
   "features": {
     "ghcr.io/devcontainers/features/python:1": {
