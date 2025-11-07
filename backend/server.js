@@ -14,22 +14,26 @@ const applicationRoutes = require("./src/routes/applications");
 const transcribeRoutes = require("./src/routes/transcribe");
 const app = express();
 
-app.use(cors());
-app.use(express.json()); // parse JSON request bodies
-app.use("/api/interview", interviewRoutes);
-app.use("/api/applications", applicationRoutes);
+// Dynamic CORS based on environment
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const allowedOrigins = FRONTEND_URL.split(',').concat([
+  'http://localhost:3000',
+  'http://127.0.0.1:5173', 
+  'https://accounts.google.com'
+]);
+
+console.log('🌐 CORS allowed origins:', allowedOrigins);
 
 app.use(cors({
-  origin: [
-    'http://localhost:5173', 
-    'http://localhost:3000', 
-    'http://127.0.0.1:5173',
-    'https://accounts.google.com'
-  ],
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+app.use(express.json()); // parse JSON request bodies
+app.use("/api/interview", interviewRoutes);
+app.use("/api/applications", applicationRoutes);
 
 app.use((req, res, next) => {
   res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
