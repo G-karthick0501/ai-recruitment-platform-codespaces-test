@@ -18,7 +18,7 @@ app.use(express.json());
 
 // Initialize Human with optimized config for emotion detection
 const config = {
-    backend: 'tensorflow',
+    backend: 'cpu', // Changed from 'tensorflow' to 'cpu' for Alpine compatibility
     modelBasePath: 'https://cdn.jsdelivr.net/npm/@vladmandic/human/models',
     face: {
         enabled: true,

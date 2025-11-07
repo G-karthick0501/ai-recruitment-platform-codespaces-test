@@ -1,0 +1,53 @@
+PDF_HASH: 6b64bc1d98ede4532eabbb05e9e5da1c
+EXTRACTED_AT: 2025-10-30T14:23:20.836900
+CONTENT_LENGTH: 2529
+CACHE_VERSION: 2.0
+=== OCR CONTENT START ===
+ees
+GCPTDS _ | traces
+Centralized Processing Cell | TDS Reconciliation Analysis and Correction Enabling System Government of India
+Income Tax Department
+FORM NO. 16
+[See rule 31(1)(a)]
+PARTA
+Certificate under Section 203 of the Income-tax Act, 1961 for tax deducted at source on salary paid to an employee under section 192 or pension/interest income
+of specified senior citizen under section 194P
+Certificate No. FKAHRGA Last updated on 30-May-2025
+Name and address of the Employer/Specified Bank Name and address of the Employee/Specified senior citizen
+WISSEN TECHNOLOGY PRIVATE LIMITED
+G J]
+1 RST FLOOR, EMBASSY SGNET BOLING, suNbex Govan
+OUTER Ring ROAD BANGAT ORE 560103 H- | DHAKA APARTMENT, SHANTHI COLONY,
+KAgiatalea, , % * JEEVARATHINAM NAGAR ADYAR, S.O, CHENNAI - 600020 Tamil
++(91)40-66537000 Nadu
+raghu.pareddy@wissen.com
+PAN of the Employee Reference No. provided by the
+PAN of the Deductor TAN of the Deductor Employee/Specified senior | Employer/Pension Payment order no. provided
+citizen by the Employer (If available)
+The Commissioner of Income Tax (TDS) Erom To
+Room No. 59, H.M.T. Bhawan, 4th Floor, Bellary Road , 2025-26 22-Apr-2024 31-Mar-2025
+Ganganagar, Bangalore - 560032
+Summary of amount paid/credited and tax deducted at source thereon in respect of the employee
+Receipt Numbers of original * .
+Quarter(s) quarterly statements of TDS Auiountaid/credited Amount of tax deducted Amonnt.of tax = remitted
+" under sub-section (3) of enn (Rs.) ‘
+Section 200
+QVSAWJVC 273367.00 22993.00 22993.00
+QVWGSIVA 356565.00 22188.00 22188.00
+QVZZTMGF 356566.00 22188.00 22188.00
+Total (Rs.) | 1443063.00 118160.00 118160.00
+1. DETAILS OF TAX DEDUCTED AND DEPOSITED IN THE CENTRAL GOVERNMENT ACCOUNT THROUGH BOOK ADJUSTMENT
+(The deductor to provide payment wise details of tax deducted and deposited with respect to the deductee)
+Book Identification Number (BIN)
+Tax Deposited in respect of the
+SENG: ate Receipt Numbers of Form] DDO serial number in Form no. Date amt chet Se ae
+” No. 24G 24G yyyy. wi 0.
+Il. DETAILS OF TAX DEDUCTED AND DEPOSITED IN THE CENTRAL GOVERNMENT ACCOUNT THROUGH CHALLAN
+(The deductor to provide payment wise details of tax deducted and deposited with respect to the deductee)
+Tax Deposited in respect of the Challan Identification Number (CIN)
+SI. No. deductee
+(Rs.) BSR Code of the Bank Date on which Tax deposited} Challan Serial Number | Status of matching with
+Branch (dd/mm/yyyy) OLTAS*
+12996.00 6390009 06-06-2024 69043
+9997.00 390000 06-08-2004 1528
+2079100 290009 07-05-2004 12358
