@@ -7,7 +7,7 @@
     "memory": "8gb",
     "storage": "32gb"
   },
-  "postCreateCommand": "sudo apk add --no-cache nodejs npm python3 py3-pip py3-numpy py3-pandas py3-scipy py3-nltk py3-scikit-learn py3-pillow py3-yaml py3-requests py3-certifi py3-fastapi py3-pydantic py3-pypdf py3-beautifulsoup4 py3-joblib py3-click py3-tqdm py3-protobuf py3-httpx py3-filelock py3-fsspec build-base && echo 'Alpine packages installed - scikit-learn, numpy, pandas, scipy, fastapi, and more!'",
+  "postCreateCommand": "sudo apk add --no-cache nodejs npm python3 py3-pip py3-numpy py3-pandas py3-scipy py3-nltk py3-scikit-learn py3-pillow py3-yaml py3-requests py3-certifi py3-fastapi py3-pydantic py3-pypdf py3-beautifulsoup4 py3-joblib py3-click py3-tqdm py3-protobuf py3-httpx py3-filelock py3-fsspec build-base ffmpeg-dev cairo-dev jpeg-dev pango-dev giflib-dev pixman-dev && echo 'Alpine packages installed - scikit-learn, numpy, pandas, scipy, fastapi, ffmpeg, canvas deps!'",
   "portsAttributes": {
     "8000": {
       "label": "Resume Analyzer",
