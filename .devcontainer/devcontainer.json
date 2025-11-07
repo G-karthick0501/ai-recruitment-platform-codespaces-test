@@ -33,7 +33,7 @@
       }
     }
   },
-  "postCreateCommand": "echo 'Container created! Run start_all_services.sh to start services.'",
+  "postCreateCommand": "echo 'Container created with SSH! Run start_all_services.sh to start services.'",
   "portsAttributes": {
     "8000": {
       "label": "Resume Analyzer",
