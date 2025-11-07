@@ -8,6 +8,8 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
+// Load TensorFlow.js node backend first to register it
+require('@tensorflow/tfjs-node');
 const { Human } = require('@vladmandic/human');
 
 const app = express();
