@@ -45,11 +45,9 @@ app = FastAPI(
 
 # CORS configuration - Dynamic based on environment
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
-# Split by comma for multiple URLs, then add common local dev URLs
+# Split by comma for multiple URLs, then add localhost alias
 allowed_origins = FRONTEND_URL.split(",") + [
-    "http://127.0.0.1:5173",
-    "http://localhost:5178",
-    "http://127.0.0.1:5178"
+    "http://127.0.0.1:5173"
 ]
 
 print(f"🌐 CORS allowed origins: {allowed_origins}")
