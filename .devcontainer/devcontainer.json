@@ -1,37 +1,8 @@
 {
   "name": "AI Recruitment Platform",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "image": "mcr.microsoft.com/devcontainers/base:alpine",
   "workspaceFolder": "/workspaces/ai-recruitment-platform-codespaces-test",
-  "features": {
-    "ghcr.io/devcontainers/features/sshd:1": {},
-    "ghcr.io/devcontainers/features/python:1": {
-      "version": "3.12",
-      "installTools": true
-    },
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "18",
-      "nodeGypDependencies": true
-    }
-  },
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "ms-python.python",
-        "ms-python.flake8",
-        "ms-python.black-formatter",
-        "bradlc.vscode-tailwindcss",
-        "esbenp.prettier-vscode"
-      ],
-      "settings": {
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "python.linting.enabled": true,
-        "python.linting.flake8Enabled": true,
-        "python.formatting.provider": "black",
-        "editor.formatOnSave": true
-      }
-    }
-  },
-  "postCreateCommand": "echo 'Container created with SSH! Run start_all_services.sh to start services.'",
+  "postCreateCommand": "apk add --no-cache nodejs npm python3 py3-pip && echo 'Container created! Node.js, npm, and Python installed. Run start_all_services.sh to start services.'",
   "portsAttributes": {
     "8000": {
       "label": "Resume Analyzer",
