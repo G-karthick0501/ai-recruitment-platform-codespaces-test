@@ -2,7 +2,12 @@
   "name": "AI Recruitment Platform",
   "image": "mcr.microsoft.com/devcontainers/universal:2",
   "workspaceFolder": "/workspaces/ai-recruitment-platform-codespaces-test",
-  "postCreateCommand": "echo 'Container created! Node.js, npm, and Python pre-installed. Run start_all_services.sh to start services.'",
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+  "postCreateCommand": "sudo apk add --no-cache nodejs npm python3 py3-pip py3-numpy py3-pandas py3-scipy py3-nltk && echo 'Alpine environment ready with Node.js, Python, and common packages'",
   "portsAttributes": {
     "8000": {
       "label": "Resume Analyzer",
