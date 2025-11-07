@@ -13,7 +13,22 @@ const { Human } = require('@vladmandic/human');
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
-app.use(cors());
+// Dynamic CORS configuration - same as Resume Analyzer
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+// Split by comma for multiple URLs, then add localhost aliases
+const allowedOrigins = FRONTEND_URL.split(',').map(url => url.trim()).concat([
+    'http://127.0.0.1:5173',
+    'http://localhost:5173'
+]);
+
+console.log(`🌐 CORS allowed origins: ${allowedOrigins}`);
+
+app.use(cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 app.use(express.json());
 
 // Initialize Human with optimized config for emotion detection
