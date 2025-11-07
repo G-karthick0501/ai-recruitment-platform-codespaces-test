@@ -33,9 +33,16 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Detect available TensorFlow backend (tensorflow for glibc, cpu for musl)
+const tf = require('@tensorflow/tfjs-node');
+const availableBackends = Object.keys(tf.engine().registryFactory);
+const tfBackend = availableBackends.includes('tensorflow') ? 'tensorflow' : 'cpu';
+console.log(`🔧 Available backends: ${availableBackends.join(', ')}`);
+console.log(`✅ Using backend: ${tfBackend}`);
+
 // Initialize Human with optimized config for emotion detection
 const config = {
-    backend: 'tensorflow', // Native TensorFlow backend for best performance
+    backend: tfBackend, // Auto-detect: tensorflow (glibc) or cpu (musl)
     modelBasePath: 'https://cdn.jsdelivr.net/npm/@vladmandic/human/models',
     face: {
         enabled: true,
