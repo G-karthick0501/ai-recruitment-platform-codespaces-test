@@ -8,6 +8,9 @@ import scipy.fft
 from scipy.fftpack import dct
 import soundfile as sf
 from typing import Tuple
+import subprocess
+import tempfile
+import os
 
 
 def hz_to_mel(hz):
@@ -68,9 +71,40 @@ def create_mel_filterbank(n_fft, n_mels, sample_rate, fmin=0, fmax=None):
     return filterbank
 
 
+def convert_webm_to_wav(input_path: str) -> str:
+    """
+    Convert webm file to wav using ffmpeg
+    
+    Args:
+        input_path: Path to webm file
+    
+    Returns:
+        Path to temporary wav file
+    """
+    # Create temporary wav file
+    temp_wav = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
+    temp_wav.close()
+    
+    # Convert using ffmpeg
+    try:
+        subprocess.run([
+            'ffmpeg', '-i', input_path,
+            '-ar', '16000',  # Resample to 16kHz
+            '-ac', '1',      # Convert to mono
+            '-y',            # Overwrite output
+            temp_wav.name
+        ], check=True, capture_output=True)
+        return temp_wav.name
+    except subprocess.CalledProcessError as e:
+        # Clean up temp file if conversion failed
+        if os.path.exists(temp_wav.name):
+            os.remove(temp_wav.name)
+        raise ValueError(f"Failed to convert audio: {e.stderr.decode()}")
+
+
 def extract_mfcc(audio_path: str, n_mfcc: int = 13, n_fft: int = 2048, 
                  hop_length: int = 512, n_mels: int = 128, 
-                 sample_rate: int = 16000) -> Tuple[np.ndarray, int]:
+                 sample_rate: int = 16000, return_audio: bool = False) -> Tuple:
     """
     Extract MFCC features from audio file using scipy
     
@@ -81,12 +115,28 @@ def extract_mfcc(audio_path: str, n_mfcc: int = 13, n_fft: int = 2048,
         hop_length: Number of samples between successive frames
         n_mels: Number of Mel bands
         sample_rate: Target sample rate
+        return_audio: If True, also return the audio data
     
     Returns:
-        Tuple of (mfcc_features, actual_sample_rate)
+        If return_audio=False: Tuple of (mfcc_features, actual_sample_rate)
+        If return_audio=True: Tuple of (mfcc_features, actual_sample_rate, audio_data)
     """
-    # Load audio file
-    audio, sr = sf.read(audio_path, dtype='float32')
+    # Handle webm files by converting to wav
+    converted_file = None
+    try:
+        if audio_path.endswith('.webm'):
+            converted_file = convert_webm_to_wav(audio_path)
+            audio_path = converted_file
+        
+        # Load audio file
+        audio, sr = sf.read(audio_path, dtype='float32')
+    except Exception as e:
+        # If soundfile fails, try ffmpeg conversion
+        if not audio_path.endswith('.wav'):
+            converted_file = convert_webm_to_wav(audio_path)
+            audio, sr = sf.read(converted_file, dtype='float32')
+        else:
+            raise e
     
     # Convert stereo to mono if needed
     if len(audio.shape) > 1:
@@ -139,7 +189,17 @@ def extract_mfcc(audio_path: str, n_mfcc: int = 13, n_fft: int = 2048,
     # Apply DCT to get MFCC
     mfcc = dct(log_mel_spectrum, type=2, axis=1, norm='ortho')[:, :n_mfcc]
     
-    return mfcc.T, sr
+    # Clean up converted file if any
+    if converted_file and os.path.exists(converted_file):
+        try:
+            os.remove(converted_file)
+        except:
+            pass
+    
+    if return_audio:
+        return mfcc.T, sr, audio
+    else:
+        return mfcc.T, sr
 
 
 def extract_mfcc_statistics(mfcc: np.ndarray) -> np.ndarray:

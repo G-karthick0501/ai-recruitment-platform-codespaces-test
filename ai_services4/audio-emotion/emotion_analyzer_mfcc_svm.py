@@ -101,22 +101,21 @@ class MFCCSVMEmotionAnalyzer:
                 # Use librosa (full feature set)
                 y, sr = librosa.load(audio_path, sr=self.sample_rate)
             else:
-                # Use scipy-based MFCC extraction
-                mfcc, sr = extract_mfcc(
+                # Use scipy-based MFCC extraction (handles webm conversion internally)
+                mfcc, sr, y = extract_mfcc(
                     audio_path, 
                     n_mfcc=self.n_mfcc,
                     n_fft=self.n_fft,
                     hop_length=self.hop_length,
-                    sample_rate=self.sample_rate
+                    sample_rate=self.sample_rate,
+                    return_audio=True  # Get converted audio data for additional features
                 )
                 
                 # Extract statistical features
                 mfcc_features = extract_mfcc_statistics(mfcc)
                 
-                # Add basic spectral features using scipy
-                y, sr = sf.read(audio_path, dtype='float32')
-                if len(y.shape) > 1:
-                    y = np.mean(y, axis=1)
+                # Audio is already mono from extract_mfcc
+                # y, sr are the converted audio data
                 
                 # Simple zero crossing rate
                 zero_crossings = np.where(np.diff(np.sign(y)))[0]
@@ -228,10 +227,9 @@ class MFCCSVMEmotionAnalyzer:
                 spectral_centroid = librosa.feature.spectral_centroid(y=y, sr=sr)[0].mean()
                 zero_crossing_rate = librosa.feature.zero_crossing_rate(y)[0].mean()
             else:
-                # Load audio with soundfile
-                y, sr = sf.read(audio_path, dtype='float32')
-                if len(y.shape) > 1:
-                    y = np.mean(y, axis=1)
+                # Load audio with webm support via extract_mfcc
+                _, sr, y = extract_mfcc(audio_path, return_audio=True, sample_rate=self.sample_rate)
+                # Audio is already mono from extract_mfcc
                 
                 # Calculate basic audio features
                 rms_energy = np.sqrt(np.mean(y**2))
