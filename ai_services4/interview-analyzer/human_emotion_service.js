@@ -4,6 +4,8 @@
  * Latest TensorFlow.js with proper resource management
  */
 
+// Load environment variables FIRST before any other imports
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
