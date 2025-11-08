@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Ultra-Fast Transcription Service - faster-whisper with tiny.en model
-Port: 8001
+Port: 8003
 """
 
 import os
@@ -91,7 +91,7 @@ async def root():
         "service": "Ultra-Fast Whisper Service (faster-whisper)",
         "provider": "faster-whisper (Python + CTranslate2)",
         "status": "ready",
-        "port": 8001,
+        "port": 8003,
         "model": "tiny.en (preloaded)",
         "load_time": f"{load_time:.2f}s (one-time)",
         "speed": "~3 seconds per transcription",
@@ -159,4 +159,4 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=8003)
