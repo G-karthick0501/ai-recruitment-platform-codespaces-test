@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Ultra-Fast Transcription Service - faster-whisper with tiny.en model
+Dual-Compatible Transcription Service
 Port: 8003
+Supports: faster-whisper (if available) or SpeechRecognition (fallback)
 """
 
 import os
@@ -12,6 +13,7 @@ from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import re
+import subprocess
 
 # Initialize FastAPI
 app = FastAPI()
@@ -25,13 +27,37 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load model once on startup
-from faster_whisper import WhisperModel
-start_load = time.time()
-model = WhisperModel("tiny.en", device="cpu", compute_type="int8")
-load_time = time.time() - start_load
+# Auto-detect transcription backend availability
+use_faster_whisper = False
+model = None
+recognizer = None
+load_time = 0
 
-print(f"✅ tiny.en model loaded in {load_time:.2f}s")
+try:
+    # Try to import faster-whisper with compiled extension
+    from faster_whisper import WhisperModel
+    import ctranslate2
+    # Verify the compiled extension is available
+    if hasattr(ctranslate2, 'StorageView'):
+        start_load = time.time()
+        model = WhisperModel("tiny.en", device="cpu", compute_type="int8")
+        load_time = time.time() - start_load
+        use_faster_whisper = True
+        print(f"✅ Using faster-whisper backend (tiny.en model loaded in {load_time:.2f}s)")
+    else:
+        raise ImportError("ctranslate2 compiled extension not available")
+except (ImportError, Exception) as e:
+    # Fallback to SpeechRecognition (pure Python, uses Google Speech API)
+    try:
+        import speech_recognition as sr
+        recognizer = sr.Recognizer()
+        use_faster_whisper = False
+        print(f"✅ Using SpeechRecognition backend (Google Speech API)")
+        print(f"   Note: faster-whisper not available ({str(e)[:100]})")
+    except ImportError:
+        print(f"❌ No transcription backend available!")
+        print(f"   faster-whisper error: {str(e)}")
+        raise RuntimeError("No transcription backend available")
 
 def clean_transcription(text):
     """Clean and format transcription text"""
@@ -56,7 +82,7 @@ def clean_transcription(text):
     return text
 
 def transcribe_with_model(audio_file_path):
-    """Transcribe audio using preloaded tiny.en model"""
+    """Transcribe audio using available backend (faster-whisper or SpeechRecognition)"""
     
     try:
         # Check if file exists and has content
@@ -68,16 +94,41 @@ def transcribe_with_model(audio_file_path):
             return "No audio detected"
         
         start_time = time.time()
-        segments, info = model.transcribe(
-            audio_file_path,
-            beam_size=1,
-            language="en"
-        )
-        # Iterate through the generator properly
-        transcription_segments = []
-        for segment in segments:
-            transcription_segments.append(segment.text)
-        transcription = " ".join(transcription_segments)
+        
+        if use_faster_whisper:
+            # Use faster-whisper (local model)
+            segments, info = model.transcribe(
+                audio_file_path,
+                beam_size=1,
+                language="en"
+            )
+            # Iterate through the generator properly
+            transcription_segments = []
+            for segment in segments:
+                transcription_segments.append(segment.text)
+            transcription = " ".join(transcription_segments)
+        else:
+            # Use SpeechRecognition (Google API)
+            # Convert webm to wav first using ffmpeg
+            wav_path = audio_file_path.replace('.webm', '.wav')
+            subprocess.run(['ffmpeg', '-i', audio_file_path, wav_path, '-y'], 
+                         capture_output=True, check=True)
+            
+            # Transcribe using Google Speech Recognition
+            import speech_recognition as sr
+            with sr.AudioFile(wav_path) as source:
+                audio_data = recognizer.record(source)
+            try:
+                transcription = recognizer.recognize_google(audio_data)
+            except sr.UnknownValueError:
+                transcription = "Could not understand audio"
+            except sr.RequestError:
+                transcription = "Speech service unavailable"
+            
+            # Clean up wav file
+            if os.path.exists(wav_path):
+                os.remove(wav_path)
+        
         elapsed = time.time() - start_time
         
         return clean_transcription(transcription)
@@ -87,19 +138,27 @@ def transcribe_with_model(audio_file_path):
 
 @app.get("/")
 async def root():
-    return {
-        "service": "Ultra-Fast Whisper Service (faster-whisper)",
-        "provider": "faster-whisper (Python + CTranslate2)",
+    backend_info = {
+        "service": "Dual-Compatible Transcription Service",
+        "provider": "faster-whisper" if use_faster_whisper else "SpeechRecognition (Google API)",
+        "backend": "faster-whisper + CTranslate2" if use_faster_whisper else "SpeechRecognition + Google Speech API",
         "status": "ready",
         "port": 8003,
-        "model": "tiny.en (preloaded)",
-        "load_time": f"{load_time:.2f}s (one-time)",
-        "speed": "~3 seconds per transcription",
         "endpoints": [
             "/transcribe",
             "/health"
         ]
     }
+    
+    if use_faster_whisper:
+        backend_info["model"] = "tiny.en (preloaded)"
+        backend_info["load_time"] = f"{load_time:.2f}s (one-time)"
+        backend_info["speed"] = "~3 seconds per transcription"
+    else:
+        backend_info["model"] = "Google Speech API (cloud)"
+        backend_info["speed"] = "~2-5 seconds per transcription"
+    
+    return backend_info
 
 @app.post("/transcribe")
 async def transcribe_audio(file: UploadFile = File(...)):
