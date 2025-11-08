@@ -16,8 +16,15 @@ let tf;
 let useTensorFlowNode = false;
 try {
     tf = require('@tensorflow/tfjs-node');
-    useTensorFlowNode = true;
-    console.log('✅ Using TensorFlow.js Node (native backend)');
+    // Verify it's actually the native backend (not a compatibility stub)
+    if (tf.node && tf.node.decodeImage) {
+        useTensorFlowNode = true;
+        console.log('✅ Using TensorFlow.js Node (native backend)');
+    } else {
+        // It's a stub, use CPU backend instead
+        tf = require('@tensorflow/tfjs');
+        console.log('✅ Using TensorFlow.js CPU backend (stub detected)');
+    }
 } catch (e) {
     tf = require('@tensorflow/tfjs');
     console.log('✅ Using TensorFlow.js CPU backend');
