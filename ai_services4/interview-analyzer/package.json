@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "mock_ai_service.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "node -e \"try { const tf = require('@tensorflow/tfjs-node'); if (tf.node && tf.node.decodeImage) { console.log('✅ TensorFlow.js Node backend available'); } else { throw new Error('Stub detected'); } } catch(e) { console.log('⚠️  Creating TensorFlow.js Node compatibility stub...'); const fs = require('fs'); const path = require('path'); const dir = path.join('node_modules', '@tensorflow'); if (!fs.existsSync(dir)) fs.mkdirSync(dir, {recursive: true}); fs.writeFileSync(path.join(dir, 'tfjs-node.js'), 'module.exports = require(\\\"@tensorflow/tfjs\\\");'); console.log('✅ Compatibility stub created'); }\""
   },
   "keywords": [],
   "author": "",
@@ -11,12 +12,14 @@
   "description": "",
   "dependencies": {
     "@tensorflow/tfjs": "^4.22.0",
-    "@tensorflow/tfjs-node": "^4.22.0",
     "@vladmandic/human": "^3.3.6",
     "canvas": "^3.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^5.1.0",
     "multer": "^2.0.2"
+  },
+  "optionalDependencies": {
+    "@tensorflow/tfjs-node": "^4.22.0"
   }
 }
